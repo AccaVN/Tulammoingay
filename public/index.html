@@ -99,7 +99,7 @@ main .wrap{padding-block:18px calc(40px + env(safe-area-inset-bottom,0px));displ
 .num{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:15px;color:#fff;background:var(--c)}
 .task .txt{font-weight:600;font-size:14px;line-height:1.3;min-width:0;overflow-wrap:anywhere}
 .task .ico{grid-column:1/-1;justify-self:end;align-self:end;font-size:30px;line-height:1;margin-top:2px}
-.task .ico img{display:block;width:62px;height:62px;object-fit:contain}
+.task .ico img{display:block;width:80px;height:64px;object-fit:contain}
 .task .ico.emo{font-size:40px;line-height:1.3}
 .task.done{background:var(--done);border-color:var(--doneline)}
 .task.done .txt{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:var(--doneline)}
@@ -135,10 +135,10 @@ main .wrap{padding-block:18px calc(40px + env(safe-area-inset-bottom,0px));displ
 .btn.warn{color:var(--red)}
 .row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:8px;align-items:center;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:8px}
 .row .em{width:44px;height:44px;border-radius:10px;border:2px solid var(--line);background:var(--bg);font-size:24px;display:grid;place-items:center;padding:0}
-.row .em img,.chk img{width:34px;height:34px;object-fit:contain}
-.chk img{width:26px;height:26px;vertical-align:middle}
+.row .em img,.chk img{width:40px;height:32px;object-fit:contain}
+.chk img{width:30px;height:24px;vertical-align:middle;flex:none}
 .picker .imgs{grid-column:1/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;padding-bottom:6px;border-bottom:2px dashed var(--line)}
-.picker .imgs button img{width:100%;max-width:44px;height:auto;aspect-ratio:1;object-fit:contain}
+.picker .imgs button img{width:100%;max-width:50px;height:auto;aspect-ratio:5/4;object-fit:contain}
 .row input,.field input{font-size:16px;width:100%;min-width:0;border:2px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 10px}
 .row .acts{display:flex;gap:4px}
 .ib{width:36px;height:36px;border-radius:10px;border:2px solid var(--line);background:var(--bg);font-weight:700;display:grid;place-items:center;padding:0}
@@ -146,6 +146,7 @@ main .wrap{padding-block:18px calc(40px + env(safe-area-inset-bottom,0px));displ
 .rew{grid-template-columns:72px minmax(0,1fr) auto}
 .rew input[type=number]{text-align:center}
 .field{display:grid;gap:4px}
+select.sel{width:100%;border:2px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 10px;font-size:16px}
 .field label{font-size:13px;font-weight:600;color:var(--muted)}
 .note{font-size:13px;color:var(--muted);margin:0}
 .note.bad{color:var(--red)}
@@ -286,6 +287,7 @@ main .wrap{padding-block:18px calc(40px + env(safe-area-inset-bottom,0px));displ
     </div>
     <form id="authForm" class="auth-form" novalidate>
       <div class="field" id="childField" hidden><label for="a-child">Tên của bé</label><input id="a-child" autocomplete="off" placeholder="VD: Bin"></div>
+      <div class="field" id="gradeField" hidden><label for="a-grade">Bé đang học</label><select id="a-grade" class="sel"><option value="" selected disabled>Chọn lớp</option><option value="Lá">Lớp Lá (mẫu giáo)</option><option value="1">Lớp 1</option><option value="2">Lớp 2</option><option value="3">Lớp 3</option><option value="4">Lớp 4</option><option value="5">Lớp 5</option></select></div>
       <div class="field"><label for="a-user">Tên đăng nhập</label><input id="a-user" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="VD: nhabin"></div>
       <div class="field"><label for="a-pass">Mật khẩu</label><input id="a-pass" type="password" autocomplete="current-password"></div>
       <div class="field" id="pass2Field" hidden><label for="a-pass2">Nhập lại mật khẩu</label><input id="a-pass2" type="password" autocomplete="new-password"></div>
@@ -343,6 +345,7 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 
+const GRADES=[["Lá","Lớp Lá (mẫu giáo)"],["1","Lớp 1"],["2","Lớp 2"],["3","Lớp 3"],["4","Lớp 4"],["5","Lớp 5"]];
 const OLD_EMO={}; DEF.tasks.forEach(t=>{ OLD_EMO[t.id]=t.emo; delete t.emo; });
 function iconHTML(ic){
   ic=ic||"img:28";
@@ -445,7 +448,7 @@ function render(){
   $("dateLbl").textContent=WDL[now.getDay()]+", "+now.getDate()+"/"+(now.getMonth()+1)+"/"+now.getFullYear();
   $("gradeLbl").textContent=cfg.grade?" - Lớp "+cfg.grade:"";
   $("whoLbl").innerHTML=(cfg.name?"Chào <b>"+esc(cfg.name)+"</b>!":"Chào con!")+(cfg.school?" · "+esc(cfg.school):"");
-  $("bubble").innerHTML="Cố gắng mỗi ngày để trở thành "+(cfg.grade?"học sinh lớp "+esc(cfg.grade):"bạn nhỏ")+" siêu giỏi nhé! <span class=\"heart\">♥</span>";
+  $("bubble").innerHTML="Cố gắng mỗi ngày để trở thành "+(cfg.grade==="Lá"?"bé ngoan lớp Lá":cfg.grade?"học sinh lớp "+esc(cfg.grade):"bạn nhỏ")+" siêu giỏi nhé! <span class=\"heart\">♥</span>";
   const done=new Set(doneFor(k)), n=done.size, total=cfg.tasks.length;
   $("countLbl").innerHTML=n+"<small>/"+total+" việc</small>";
   const rw=cfg.rewards, next=rw.find(r=>r.need>n);
@@ -569,7 +572,7 @@ function rewardsHTML(){
 }
 function infoHTML(){
   return '<div class="field"><label for="f-name">Tên bé</label><input id="f-name" data-act="info" data-k="name" value="'+esc(cfg.name)+'" placeholder="VD: Bin"></div>'+
-  '<div class="field"><label for="f-grade">Lớp</label><input id="f-grade" data-act="info" data-k="grade" value="'+esc(cfg.grade)+'"></div>'+
+  '<div class="field"><label for="f-grade">Lớp</label><select id="f-grade" class="sel" data-act="info" data-k="grade">'+GRADES.map(g=>'<option value="'+g[0]+'"'+(String(cfg.grade)===g[0]?" selected":"")+'>'+g[1]+'</option>').join("")+'</select></div>'+
   '<div class="field"><label for="f-school">Trường</label><input id="f-school" data-act="info" data-k="school" value="'+esc(cfg.school)+'"></div>'+
   '<h3 style="font-size:20px;margin-top:6px">Mục tiêu tháng này</h3><p class="note">Ô trống sẽ không hiện cho con.</p>'+
   cfg.goals.map((g,i)=>'<div class="row" style="grid-template-columns:minmax(0,1fr) auto" data-i="'+i+'"><input id="goal-'+g.id+'" data-act="goal" value="'+esc(g.text)+'" placeholder="Mục tiêu '+(i+1)+'"><div class="acts"><button class="ib del" data-act="gdel" aria-label="Xoá mục tiêu">✕</button></div></div>').join("")+
@@ -661,7 +664,7 @@ let authMode="login", localOnly=false;
 function setMode(m){
   authMode=m;
   $("modeLogin").setAttribute("aria-selected",m==="login"); $("modeReg").setAttribute("aria-selected",m==="register");
-  $("childField").hidden=m!=="register"; $("pass2Field").hidden=m!=="register";
+  $("childField").hidden=m!=="register"; $("gradeField").hidden=m!=="register"; $("pass2Field").hidden=m!=="register";
   $("a-pass").setAttribute("autocomplete",m==="register"?"new-password":"current-password");
   $("authBtn").textContent=m==="register"?"Tạo tài khoản":"Đăng nhập";
   $("authErr").hidden=true;
@@ -671,7 +674,6 @@ $("modeReg").onclick=()=>setMode("register");
 function showAuth(msg){
   $("auth").hidden=false;
   if(msg){ $("authErr").textContent=msg; $("authErr").hidden=false; }
-  if(!lsGet("tlmn_user")&&!msg) setMode("register");
 }
 function authErr(m){ $("authErr").textContent=m; $("authErr").hidden=false; }
 async function authCall(payload,useToken){
@@ -683,11 +685,11 @@ function clearLocal(){
   cfg=normCfg(null); days={}; dirtyCfg=false; dirtyDays.clear();
   lsSet("tlmn_cfg",cfg); lsSet("tlmn_days",days); saveDirty();
 }
-function adopt(username,tk,isNew,child){
+function adopt(username,tk,isNew,child,grade){
   const prev=lsGet("tlmn_user");
   if(prev&&prev!==username) clearLocal();
   token=tk; lsSet("tlmn_token",tk); lsSet("tlmn_user",username);
-  if(isNew&&child){ cfg.name=child; lsSet("tlmn_cfg",cfg); dirtyCfg=true; saveDirty(); }
+  if(isNew){ if(child) cfg.name=child; if(grade) cfg.grade=grade; lsSet("tlmn_cfg",cfg); dirtyCfg=true; saveDirty(); }
   localOnly=false; status="local";
   $("auth").hidden=true; $("a-pass").value=""; $("a-pass2").value="";
   render(); pull();
@@ -698,13 +700,14 @@ $("authForm").addEventListener("submit",async e=>{
   if(!u||!pw) return authErr("Nhập tên đăng nhập và mật khẩu");
   if(authMode==="register"){
     if(!/^[a-z0-9._-]{3,30}$/.test(u)) return authErr("Tên đăng nhập 3–30 ký tự, chỉ gồm chữ không dấu, số và . _ -");
+    if(!$("a-grade").value) return authErr("Chọn lớp bé đang học");
     if(pw.length<6) return authErr("Mật khẩu cần ít nhất 6 ký tự");
     if(pw!==$("a-pass2").value) return authErr("Hai mật khẩu chưa giống nhau");
   }
   const btn=$("authBtn"); btn.disabled=true; const old=btn.textContent; btn.textContent="Đang xử lý…";
   try{
     const r=await authCall({action:authMode,username:u,password:pw});
-    if(r.status===200) adopt(r.data.username,r.data.token,authMode==="register",$("a-child").value.trim());
+    if(r.status===200) adopt(r.data.username,r.data.token,authMode==="register",$("a-child").value.trim(),$("a-grade").value);
     else if(r.status===503){ authErr("Máy chủ chưa có cơ sở dữ liệu. Có thể dùng tạm trên máy này."); $("authLocal").hidden=false; }
     else authErr(r.data.error||"Không thực hiện được, thử lại sau");
   }catch(err){ authErr("Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại."); }
