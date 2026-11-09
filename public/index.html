@@ -21,19 +21,22 @@ img{max-width:100%}
 body{margin:0}
 /* Layout: one-column phone board — sky header with star meter, sticker grid of tasks, goals + week strip; parent sheet slides over */
 :root{
-  --sky:#dff1fb; --bg:#f7fbf3; --card:#ffffff; --ink:#20343f; --muted:#5d7380; --line:#d7e4dc;
-  --blue:#2f7fd1; --green:#3a9a4a; --sun:#f6b81a; --red:#e2513c; --leaf:#e6f4dd; --done:#fff4cf; --doneline:#f0c94a;
-  --shadow:0 2px 0 rgba(32,52,63,.08);
+  --sky:#fdf5e4; --bg:#fbf8ef; --card:#ffffff; --ink:#24344a; --muted:#5f6f7c; --line:#e7dcc6;
+  --blue:#2f6fd1; --green:#3a9a4a; --sun:#f6b81a; --red:#e2513c; --orange:#f08a24; --leaf:#e9f4dc; --done:#fff4cf; --doneline:#f0c94a;
+  --grass:#8ccf6b; --ribbon:#2f8a43; --bubble:#e5f5e6; --outline:#24344a; --halo:#ffffff;
+  --shadow:0 2px 0 rgba(90,70,30,.10);
   --display:"Baloo 2","Be Vietnam Pro",system-ui,sans-serif;
   --body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --sky:#15283a; --bg:#0f1b22; --card:#18262e; --ink:#e7f1f3; --muted:#9fb3bc; --line:#2a3b44;
-  --blue:#6bb2f2; --green:#6cc77a; --sun:#f7c843; --red:#f27b66; --leaf:#1b2e24; --done:#3a3115; --doneline:#b8932a;
+  --sky:#16263a; --bg:#0f1b22; --card:#18262e; --ink:#e7f1f3; --muted:#9fb3bc; --line:#2a3b44;
+  --blue:#6bb2f2; --green:#6cc77a; --sun:#f7c843; --red:#f27b66; --orange:#f7a14d; --leaf:#1b2e24; --done:#3a3115; --doneline:#b8932a;
+  --grass:#4f8f3e; --ribbon:#2c7a3c; --bubble:#1d3328; --outline:#cfe0e6; --halo:#0f1b22;
   --shadow:0 2px 0 rgba(0,0,0,.3); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --sky:#15283a; --bg:#0f1b22; --card:#18262e; --ink:#e7f1f3; --muted:#9fb3bc; --line:#2a3b44;
-  --blue:#6bb2f2; --green:#6cc77a; --sun:#f7c843; --red:#f27b66; --leaf:#1b2e24; --done:#3a3115; --doneline:#b8932a;
+  --sky:#16263a; --bg:#0f1b22; --card:#18262e; --ink:#e7f1f3; --muted:#9fb3bc; --line:#2a3b44;
+  --blue:#6bb2f2; --green:#6cc77a; --sun:#f7c843; --red:#f27b66; --orange:#f7a14d; --leaf:#1b2e24; --done:#3a3115; --doneline:#b8932a;
+  --grass:#4f8f3e; --ribbon:#2c7a3c; --bubble:#1d3328; --outline:#cfe0e6; --halo:#0f1b22;
   --shadow:0 2px 0 rgba(0,0,0,.3); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -44,17 +47,29 @@ button{cursor:pointer}
 .wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1,h2,h3{font-family:var(--display);margin:0;line-height:1.1;text-wrap:balance}
 
-/* header */
-.top{background:var(--sky);border-bottom:3px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
-.top .wrap{padding-block:18px 20px;display:grid;gap:14px}
-.hello{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.hello small{display:block;color:var(--muted);font-weight:600;font-size:13px;letter-spacing:.02em}
-.hello h1{font-size:clamp(26px,7vw,36px);color:var(--red)}
-.hello h1 span{color:var(--green)}
-.hello h1 em{font-style:normal;color:var(--blue)}
-.who{font-weight:600;margin-top:4px}
-.lockbtn{flex:none;border:2px solid var(--line);background:var(--card);border-radius:999px;padding:8px 12px;font-weight:600;font-size:13px;display:flex;gap:6px;align-items:center}
-.meter{background:var(--card);border-radius:18px;padding:14px 14px 12px;box-shadow:var(--shadow);border:2px solid var(--line)}
+/* header — poster banner: kid + speech bubble on cream, grassy hill, green ribbon, multicolour title, bear peeking over the meter */
+.top{background:var(--sky);padding-top:env(safe-area-inset-top,0px);overflow:hidden}
+.top .wrap{padding-block:12px 18px;display:grid;gap:0}
+.hero-bar{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.date-chip{font-size:13px;font-weight:600;color:var(--muted);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:5px 12px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero{position:relative;display:grid;grid-template-columns:minmax(110px,42%) minmax(0,1fr);align-items:end;gap:6px;margin-top:4px}
+.kid{display:block;width:100%;max-width:230px;height:auto;justify-self:center;position:relative;z-index:1;margin-bottom:-6px}
+.bubble{position:relative;align-self:center;background:var(--bubble);border:2.5px solid var(--outline);border-radius:22px;padding:10px 12px;font-weight:600;font-size:clamp(13px,3.7vw,16px);line-height:1.35;text-align:center;margin-bottom:22px}
+.bubble::before{content:"";position:absolute;left:-13px;bottom:16px;width:18px;height:16px;background:var(--bubble);border-left:2.5px solid var(--outline);border-bottom:2.5px solid var(--outline);transform:skewY(30deg) rotate(8deg);border-radius:0 0 0 6px}
+.bubble .heart{color:var(--red)}
+.hill{position:relative;margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:14px max(16px,env(safe-area-inset-left,0px)) 0;background:var(--bg);border-top:4px solid var(--grass);border-radius:50% 50% 0 0 / 22px 22px 0 0}
+.ribbon{position:relative;justify-self:center;margin:-30px auto 6px;display:table;background:var(--ribbon);color:#fff;font-family:var(--display);font-weight:800;font-size:clamp(14px,4.2vw,19px);letter-spacing:.04em;text-transform:uppercase;padding:5px 26px 3px;clip-path:polygon(0 0,100% 0,calc(100% - 12px) 50%,100% 100%,0 100%,12px 50%);z-index:2;white-space:nowrap}
+.title{font-family:var(--display);font-weight:800;text-transform:uppercase;text-align:center;font-size:clamp(30px,9.4vw,50px);line-height:1;letter-spacing:.01em;margin:4px 0 2px;
+  text-shadow:2px 0 var(--halo),-2px 0 var(--halo),0 2px var(--halo),0 -2px var(--halo),2px 2px var(--halo),-2px -2px var(--halo),2px -2px var(--halo),-2px 2px var(--halo),0 4px 0 rgba(0,0,0,.08)}
+.title .c1{color:var(--red)}.title .c2{color:var(--orange)}.title .c3{color:var(--green)}.title .c4{color:var(--blue)}
+.who{text-align:center;font-weight:600;font-size:14px;color:var(--muted);margin:6px 0 14px}
+.who b{color:var(--ink)}
+.meter-wrap{position:relative}
+.bear{position:absolute;right:2px;top:-50px;width:64px;height:auto;z-index:1;pointer-events:none}
+.books{display:none}
+@media (min-width:600px){.books{display:block;position:absolute;left:0;top:-40px;width:110px;height:auto;pointer-events:none}.bear{width:96px;top:-80px}}
+.lockbtn{flex:none;border:2px solid var(--line);background:var(--card);border-radius:999px;padding:7px 12px;font-weight:600;font-size:13px;display:flex;gap:6px;align-items:center}
+.meter{position:relative;z-index:2;background:var(--card);border-radius:18px;padding:14px 14px 12px;box-shadow:var(--shadow);border:2px solid var(--line)}
 .meter-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
 .count{font-family:var(--display);font-size:40px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
 .count small{font-size:20px;color:var(--muted);font-weight:700}
@@ -62,9 +77,11 @@ h1,h2,h3{font-family:var(--display);margin:0;line-height:1.1;text-wrap:balance}
 .nextr b{color:var(--ink)}
 .bar{position:relative;height:16px;background:var(--leaf);border-radius:99px;margin:14px 0 26px}
 .bar i{position:absolute;inset:0 auto 0 0;background:var(--sun);border-radius:99px;transition:width .35s ease}
-.mark{position:absolute;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;background:var(--card);border:2px solid var(--line);display:grid;place-items:center;font-size:14px}
+.mark{position:absolute;top:50%;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;background:var(--card);border:2px solid var(--line);display:grid;place-items:center;font-size:14px}
 .mark.on{border-color:var(--sun);background:var(--done)}
-.mark b{position:absolute;top:28px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mark img{width:22px;height:22px}
+.tier .st img{width:20px;height:20px;vertical-align:-4px}
+.mark b{position:absolute;top:30px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .tiers{display:grid;gap:6px;font-size:13.5px}
 .tier{display:flex;gap:8px;align-items:flex-start;color:var(--muted)}
 .tier.on{color:var(--ink);font-weight:600}
@@ -77,11 +94,13 @@ main .wrap{padding-block:18px calc(40px + env(safe-area-inset-bottom,0px));displ
 .sec-h p{margin:0;color:var(--muted);font-size:13px}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 @media (min-width:560px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.task{position:relative;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 10px 10px 10px;min-height:92px;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto 1fr;column-gap:8px;align-items:start;box-shadow:var(--shadow);transition:transform .12s ease,background .2s}
+.task{position:relative;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 10px 8px 10px;min-height:118px;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto 1fr;column-gap:8px;align-items:start;box-shadow:var(--shadow);transition:transform .12s ease,background .2s}
 .task:active{transform:scale(.97)}
 .num{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:15px;color:#fff;background:var(--c)}
 .task .txt{font-weight:600;font-size:14px;line-height:1.3;min-width:0;overflow-wrap:anywhere}
-.task .ico{grid-column:1/-1;justify-self:end;align-self:end;font-size:30px;line-height:1;margin-top:4px}
+.task .ico{grid-column:1/-1;justify-self:end;align-self:end;font-size:30px;line-height:1;margin-top:2px}
+.task .ico img{display:block;width:62px;height:62px;object-fit:contain}
+.task .ico.emo{font-size:40px;line-height:1.3}
 .task.done{background:var(--done);border-color:var(--doneline)}
 .task.done .txt{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:var(--doneline)}
 .task .stk{position:absolute;left:8px;bottom:8px;font-size:26px;opacity:0;transform:scale(.3) rotate(-30deg);transition:.25s cubic-bezier(.3,1.6,.5,1)}
@@ -116,6 +135,10 @@ main .wrap{padding-block:18px calc(40px + env(safe-area-inset-bottom,0px));displ
 .btn.warn{color:var(--red)}
 .row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:8px;align-items:center;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:8px}
 .row .em{width:44px;height:44px;border-radius:10px;border:2px solid var(--line);background:var(--bg);font-size:24px;display:grid;place-items:center;padding:0}
+.row .em img,.chk img{width:34px;height:34px;object-fit:contain}
+.chk img{width:26px;height:26px;vertical-align:middle}
+.picker .imgs{grid-column:1/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;padding-bottom:6px;border-bottom:2px dashed var(--line)}
+.picker .imgs button img{width:100%;max-width:44px;height:auto;aspect-ratio:1;object-fit:contain}
 .row input,.field input{font-size:16px;width:100%;min-width:0;border:2px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 10px}
 .row .acts{display:flex;gap:4px}
 .ib{width:36px;height:36px;border-radius:10px;border:2px solid var(--line);background:var(--bg);font-weight:700;display:grid;place-items:center;padding:0}
@@ -157,7 +180,7 @@ main .wrap{padding-block:18px calc(40px + env(safe-area-inset-bottom,0px));displ
 /* auth */
 .auth{position:fixed;inset:0;z-index:35;background:var(--sky);overflow-y:auto;display:grid;place-items:center;padding:calc(20px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .auth-card{background:var(--card);border:2px solid var(--line);border-radius:24px;padding:22px 18px;width:min(380px,100%);display:grid;gap:14px;box-shadow:var(--shadow)}
-.auth-logo{font-size:44px;text-align:center;line-height:1}
+.auth-logo{display:block;width:170px;height:auto;margin:0 auto -6px}
 .auth-title{font-size:32px;text-align:center;color:var(--red)}
 .auth-title span{color:var(--green)}
 .seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:4px;gap:4px}
@@ -169,7 +192,7 @@ main .wrap{padding-block:18px calc(40px + env(safe-area-inset-bottom,0px));displ
 /* celebrate */
 .cele{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:rgba(15,27,34,.45)}
 .cele-card{background:var(--card);border:3px solid var(--sun);border-radius:24px;padding:24px 20px;max-width:340px;text-align:center;display:grid;gap:10px}
-.cele-card .big{font-size:56px;line-height:1}
+.cele-card .big{width:120px;height:auto;margin:0 auto}
 .cele-card h3{font-size:26px;color:var(--red)}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:60;width:100%;height:100%}
 .toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:14px;z-index:70;max-width:calc(100% - 32px)}
@@ -179,22 +202,31 @@ main .wrap{padding-block:18px calc(40px + env(safe-area-inset-bottom,0px));displ
 <body>
 <header class="top">
   <div class="wrap">
-    <div class="hello">
-      <div style="min-width:0">
-        <small id="dateLbl">Hôm nay</small>
-        <h1>Tự làm <span>mỗi ngày</span> <em id="gradeLbl">· Lớp 2</em></h1>
-        <div class="who" id="whoLbl">Chào con!</div>
-      </div>
+    <div class="hero-bar">
+      <span class="date-chip" id="dateLbl">Hôm nay</span>
       <button class="lockbtn" id="openParent" aria-label="Mở chế độ phụ huynh">🔒 Bố mẹ</button>
     </div>
-    <section class="meter" aria-label="Tiến độ hôm nay">
-      <div class="meter-head">
-        <div class="count" id="countLbl">0<small>/28 việc</small></div>
-        <div class="nextr" id="nextLbl"></div>
+    <div class="hero">
+      <img class="kid" src="/art/kid.webp" width="265" height="193" alt="">
+      <p class="bubble" id="bubble">Cố gắng mỗi ngày để trở thành học sinh lớp 2 siêu giỏi nhé! <span class="heart">♥</span></p>
+    </div>
+    <div class="hill">
+      <div class="ribbon">Chọn việc con muốn làm</div>
+      <h1 class="title"><span class="c1">Tự</span> <span class="c2">làm</span> <span class="c3">mỗi</span> <span class="c4">ngày</span><span class="c1" id="gradeLbl"> - Lớp 2</span></h1>
+      <p class="who" id="whoLbl">Chào con!</p>
+      <div class="meter-wrap">
+        <img class="books" src="/art/books.webp" alt="">
+        <img class="bear" src="/art/bear.webp" width="186" height="168" alt="">
+        <section class="meter" aria-label="Tiến độ hôm nay">
+          <div class="meter-head">
+            <div class="count" id="countLbl">0<small>/28 việc</small></div>
+            <div class="nextr" id="nextLbl"></div>
+          </div>
+          <div class="bar" id="bar"><i id="barFill" style="width:0"></i></div>
+          <div class="tiers" id="tierList"></div>
+        </section>
       </div>
-      <div class="bar" id="bar"><i id="barFill" style="width:0"></i></div>
-      <div class="tiers" id="tierList"></div>
-    </section>
+    </div>
   </div>
 </header>
 
@@ -245,7 +277,7 @@ main .wrap{padding-block:18px calc(40px + env(safe-area-inset-bottom,0px));displ
 
 <div class="auth" id="auth" hidden>
   <div class="auth-card">
-    <div class="auth-logo" aria-hidden="true">⭐</div>
+    <img class="auth-logo" src="/art/kid.webp" width="265" height="193" alt="">
     <h1 class="auth-title">Tự làm <span>mỗi ngày</span></h1>
     <p class="note" style="text-align:center">Mỗi tài khoản dành cho 1 bé. Bố mẹ và con đăng nhập cùng tài khoản trên các máy để dùng chung bảng việc.</p>
     <div class="seg" role="tablist">
@@ -266,7 +298,7 @@ main .wrap{padding-block:18px calc(40px + env(safe-area-inset-bottom,0px));displ
 
 <div class="cele" id="cele" hidden>
   <div class="cele-card">
-    <div class="big">🏆</div>
+    <img class="big" src="/art/bear.webp" width="186" height="168" alt="">
     <h3 id="celeT">Giỏi quá!</h3>
     <p id="celeP" style="margin:0"></p>
     <button class="btn pri" id="celeOk">Yeah!</button>
@@ -289,7 +321,7 @@ const DEF={
     ["🍎","Ăn nhiều rau, trái cây"],["⚽","Vận động ít nhất 15 phút"],["🧹","Phụ giúp việc nhà đơn giản"],["🚿","Tự tắm rửa, giữ vệ sinh cá nhân"],
     ["📵","Không xem thiết bị điện tử quá lâu"],["💬","Nói lời lễ phép, biết cảm ơn"],["👝","Giữ gìn đồ dùng cá nhân"],["🎒","Sắp xếp ba lô cho ngày mai"],
     ["✅","Tự kiểm tra lại bài trước khi ngủ"],["🌙","Đi ngủ đúng giờ"],["💌","Viết 3 điều con thấy biết ơn trong ngày"],["⭐","Cố gắng hơn hôm qua"]
-  ].map((t,i)=>({id:"t"+(i+1),icon:t[0],text:t[1]})),
+  ].map((t,i)=>({id:"t"+(i+1),icon:"img:"+(i+1),text:t[1],emo:t[0]})),
   rewards:[
     {need:20,text:"1 sticker yêu thích"},
     {need:24,text:"Chọn 1 phần quà nhỏ (snack / truyện tranh / đồ chơi nhỏ)"},
@@ -311,6 +343,14 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 
+const OLD_EMO={}; DEF.tasks.forEach(t=>{ OLD_EMO[t.id]=t.emo; delete t.emo; });
+function iconHTML(ic){
+  ic=ic||"img:28";
+  const m=/^img:(\d{1,2})$/.exec(ic);
+  if(m&&+m[1]>=1&&+m[1]<=28) return '<img src="/icons/'+m[1]+'.webp" alt="" loading="lazy" decoding="async">';
+  return esc(ic);
+}
+function isImg(ic){ return /^img:\d{1,2}$/.test(ic||""); }
 function normCfg(c){
   const d=clone(DEF); if(!c||typeof c!=="object") return d;
   const o=Object.assign(d,c);
@@ -318,6 +358,7 @@ function normCfg(c){
   if(!Array.isArray(o.rewards)) o.rewards=clone(DEF.rewards);
   if(!Array.isArray(o.goals)) o.goals=clone(DEF.goals);
   o.rewards=o.rewards.filter(r=>r&&+r.need>0).sort((a,b)=>a.need-b.need);
+  o.tasks.forEach(t=>{ if(t&&OLD_EMO[t.id]&&t.icon===OLD_EMO[t.id]) t.icon="img:"+t.id.slice(1); });
   return o;
 }
 let cfg=normCfg(lsGet("tlmn_cfg"));
@@ -402,8 +443,9 @@ function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout
 function render(){
   const now=new Date(), k=keyOf(now);
   $("dateLbl").textContent=WDL[now.getDay()]+", "+now.getDate()+"/"+(now.getMonth()+1)+"/"+now.getFullYear();
-  $("gradeLbl").textContent=cfg.grade?"· Lớp "+cfg.grade:"";
-  $("whoLbl").textContent=(cfg.name?"Chào "+cfg.name+"!":"Chào con!")+(cfg.school?" · "+cfg.school:"");
+  $("gradeLbl").textContent=cfg.grade?" - Lớp "+cfg.grade:"";
+  $("whoLbl").innerHTML=(cfg.name?"Chào <b>"+esc(cfg.name)+"</b>!":"Chào con!")+(cfg.school?" · "+esc(cfg.school):"");
+  $("bubble").innerHTML="Cố gắng mỗi ngày để trở thành "+(cfg.grade?"học sinh lớp "+esc(cfg.grade):"bạn nhỏ")+" siêu giỏi nhé! <span class=\"heart\">♥</span>";
   const done=new Set(doneFor(k)), n=done.size, total=cfg.tasks.length;
   $("countLbl").innerHTML=n+"<small>/"+total+" việc</small>";
   const rw=cfg.rewards, next=rw.find(r=>r.need>n);
@@ -413,11 +455,11 @@ function render(){
   else $("nextLbl").innerHTML="<b>Con đã đạt mọi mốc hôm nay! 🎉</b>";
   $("barFill").style.width=(total?Math.min(100,n/total*100):0)+"%";
   const bar=$("bar"); bar.querySelectorAll(".mark").forEach(e=>e.remove());
-  rw.forEach(r=>{ if(r.need>total) return; const m=document.createElement("span"); m.className="mark"+(n>=r.need?" on":""); m.style.left=Math.min(97,Math.max(3,r.need/total*100))+"%"; m.innerHTML=(n>=r.need?"🎁":"⭐")+"<b>"+r.need+"</b>"; bar.appendChild(m); });
-  $("tierList").innerHTML=rw.map(r=>'<div class="tier'+(n>=r.need?" on":"")+'"><span class="st">'+(n>=r.need?"✅":"⭐")+'</span><span>Đạt '+(r.need>=total&&r.need===total?"đủ ":"ít nhất ")+r.need+' việc: '+esc(r.text)+'</span></div>').join("");
+  rw.forEach(r=>{ if(r.need>total) return; const m=document.createElement("span"); m.className="mark"+(n>=r.need?" on":""); m.style.left=Math.min(97,Math.max(3,r.need/total*100))+"%"; m.innerHTML=(n>=r.need?'<img src="/art/gift.webp" alt="">':"⭐")+"<b>"+r.need+"</b>"; bar.appendChild(m); });
+  $("tierList").innerHTML=rw.map(r=>'<div class="tier'+(n>=r.need?" on":"")+'"><span class="st">'+(n>=r.need?'<img src="/art/gift.webp" alt="">':"⭐")+'</span><span>Đạt '+(r.need>=total&&r.need===total?"đủ ":"ít nhất ")+r.need+' việc: '+esc(r.text)+'</span></div>').join("");
   const g=$("grid");
   if(!total) g.innerHTML='<div class="empty" style="grid-column:1/-1">Chưa có việc nào. Bố mẹ bấm “Bố mẹ” để thêm việc cho con.</div>';
-  else g.innerHTML=cfg.tasks.map((t,i)=>'<button class="task'+(done.has(t.id)?" done":"")+'" data-id="'+t.id+'" aria-pressed="'+done.has(t.id)+'" style="--c:'+COLORS[i%COLORS.length]+'"><span class="num">'+(i+1)+'</span><span class="txt">'+esc(t.text)+'</span><span class="ico" aria-hidden="true">'+esc(t.icon||"⭐")+'</span><span class="stk" aria-hidden="true">⭐</span></button>').join("");
+  else g.innerHTML=cfg.tasks.map((t,i)=>'<button class="task'+(done.has(t.id)?" done":"")+'" data-id="'+t.id+'" aria-pressed="'+done.has(t.id)+'" style="--c:'+COLORS[i%COLORS.length]+'"><span class="num">'+(i+1)+'</span><span class="txt">'+esc(t.text)+'</span><span class="ico'+(isImg(t.icon)?"":" emo")+'" aria-hidden="true">'+iconHTML(t.icon)+'</span><span class="stk" aria-hidden="true">⭐</span></button>').join("");
   const gl=cfg.goals.filter(x=>x.text&&x.text.trim());
   $("goalSec").hidden=!gl.length;
   $("goals").innerHTML=gl.map(x=>'<button class="goal'+(x.done?" on":"")+'" data-g="'+x.id+'" aria-pressed="'+!!x.done+'"><span class="box">'+(x.done?"✓":"")+'</span><span>'+esc(x.text)+'</span></button>').join("");
@@ -502,13 +544,14 @@ function showTab(t){
   else p.innerHTML=histHTML();
 }
 function pickerHTML(){
-  return '<div class="picker">'+EMOJI.map(e=>'<button data-pick="'+e+'">'+e+'</button>').join("")+
+  let imgs='<div class="imgs">'; for(let n=1;n<=28;n++) imgs+='<button data-pick="img:'+n+'" aria-label="Hình '+n+'"><img src="/icons/'+n+'.webp" alt="" loading="lazy"></button>'; imgs+='</div>';
+  return '<div class="picker">'+imgs+EMOJI.map(e=>'<button data-pick="'+e+'">'+e+'</button>').join("")+
   '<div class="own"><input id="ownEmoji" maxlength="4" placeholder="Hoặc gõ biểu tượng khác"><button class="btn" data-pick-own="1">Chọn</button></div></div>';
 }
 function tasksHTML(){
   const total=cfg.tasks.length;
   return '<p class="note">Con thấy danh sách này mỗi ngày. Sửa chữ, đổi biểu tượng, đổi thứ tự hoặc xoá. Việc đã đánh dấu vẫn được giữ khi đổi tên.</p>'+
-  cfg.tasks.map((t,i)=>'<div class="row" data-i="'+i+'"><button class="em" data-act="pick" aria-label="Đổi biểu tượng">'+esc(t.icon||"⭐")+'</button>'+
+  cfg.tasks.map((t,i)=>'<div class="row" data-i="'+i+'"><button class="em" data-act="pick" aria-label="Đổi biểu tượng">'+iconHTML(t.icon)+'</button>'+
     '<input id="task-'+t.id+'" value="'+esc(t.text)+'" data-act="text" aria-label="Tên việc '+(i+1)+'">'+
     '<div class="acts"><button class="ib" data-act="up" aria-label="Lên"'+(i?"":" disabled")+'>↑</button><button class="ib" data-act="down" aria-label="Xuống"'+(i<total-1?"":" disabled")+'>↓</button>'+
     '<button class="ib del'+(armed===t.id?" armed":"")+'" data-act="del" aria-label="Xoá">'+(armed===t.id?"Xoá?":"✕")+'</button></div></div>'+
@@ -560,7 +603,7 @@ function histHTML(){
   if(histSel){
     const set=new Set(doneFor(histSel)); const p=histSel.split("-");
     edit='<h3 style="font-size:20px">Ngày '+(+p[2])+'/'+(+p[1])+' · '+set.size+'/'+cfg.tasks.length+' việc</h3><p class="note">Sửa lại nếu con quên đánh dấu.</p><div class="checks">'+
-      cfg.tasks.map(t=>'<button class="chk'+(set.has(t.id)?" on":"")+'" data-hid="'+t.id+'"><span class="box">'+(set.has(t.id)?"✓":"")+'</span><span>'+esc(t.icon)+' '+esc(t.text)+'</span></button>').join("")+'</div>';
+      cfg.tasks.map(t=>'<button class="chk'+(set.has(t.id)?" on":"")+'" data-hid="'+t.id+'"><span class="box">'+(set.has(t.id)?"✓":"")+'</span>'+iconHTML(t.icon)+'<span>'+esc(t.text)+'</span></button>').join("")+'</div>';
   }
   return '<div class="cal-h"><button class="ib" data-act="mprev" aria-label="Tháng trước">‹</button><h3 style="font-size:20px">Tháng '+(m+1)+'/'+y+'</h3><button class="ib" data-act="mnext" aria-label="Tháng sau">›</button></div>'+
   '<p class="note">'+act+' ngày có làm việc · tổng '+mSum+' việc. Chạm vào một ngày để xem hoặc sửa.</p><div class="cal">'+cells+'</div>'+edit;
@@ -580,7 +623,7 @@ $("pane").addEventListener("click",e=>{
     case "up": if(i>0){[cfg.tasks[i-1],cfg.tasks[i]]=[cfg.tasks[i],cfg.tasks[i-1]];saveCfg()} break;
     case "down": if(i<cfg.tasks.length-1){[cfg.tasks[i+1],cfg.tasks[i]]=[cfg.tasks[i],cfg.tasks[i+1]];saveCfg()} break;
     case "del": { const id=cfg.tasks[i].id; if(armed===id){cfg.tasks.splice(i,1);armed=null;saveCfg(true)} else armed=id; break; }
-    case "add": { const t={id:"t"+uid(),icon:"⭐",text:"Việc mới"}; cfg.tasks.push(t); saveCfg(true); showTab("tasks"); const el=$("task-"+t.id); if(el){el.focus();el.select();el.scrollIntoView({block:"center"})} return; }
+    case "add": { const t={id:"t"+uid(),icon:"img:28",text:"Việc mới"}; cfg.tasks.push(t); saveCfg(true); showTab("tasks"); const el=$("task-"+t.id); if(el){el.focus();el.select();el.scrollIntoView({block:"center"})} return; }
     case "reset": armed="__reset"; break;
     case "resetyes": cfg.tasks=clone(DEF.tasks); saveCfg(true); toast("Đã khôi phục 28 việc mẫu"); break;
     case "resetno": break;

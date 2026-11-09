@@ -1,5 +1,5 @@
 // Giúp app mở được khi mất mạng: lấy bản mới khi có mạng, dùng bản đã lưu khi không có.
-const CACHE = "tlmn-v2";
+const CACHE = "tlmn-v3";
 const SHELL = ["/", "/manifest.webmanifest", "/icon.svg", "/icon-192.png", "/apple-touch-icon.png"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
