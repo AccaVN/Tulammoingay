@@ -154,6 +154,18 @@ main .wrap{padding-block:18px calc(40px + env(safe-area-inset-bottom,0px));displ
 .shake{animation:shake .35s}
 @keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 
+/* auth */
+.auth{position:fixed;inset:0;z-index:35;background:var(--sky);overflow-y:auto;display:grid;place-items:center;padding:calc(20px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.auth-card{background:var(--card);border:2px solid var(--line);border-radius:24px;padding:22px 18px;width:min(380px,100%);display:grid;gap:14px;box-shadow:var(--shadow)}
+.auth-logo{font-size:44px;text-align:center;line-height:1}
+.auth-title{font-size:32px;text-align:center;color:var(--red)}
+.auth-title span{color:var(--green)}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:4px;gap:4px}
+.seg button{border:0;background:transparent;border-radius:10px;padding:8px;font-weight:600}
+.seg button[aria-selected="true"]{background:var(--blue);color:#fff}
+.auth-form{display:grid;gap:12px}
+.acct{display:grid;gap:10px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px}
+
 /* celebrate */
 .cele{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:rgba(15,27,34,.45)}
 .cele-card{background:var(--card);border:3px solid var(--sun);border-radius:24px;padding:24px 20px;max-width:340px;text-align:center;display:grid;gap:10px}
@@ -231,12 +243,24 @@ main .wrap{padding-block:18px calc(40px + env(safe-area-inset-bottom,0px));displ
   </div>
 </div>
 
-<div class="pinbox" id="keybox" hidden>
-  <div class="pincard">
-    <h3 style="font-size:22px">Mã gia đình</h3>
-    <p class="note">Nhập mã gia đình (APP_KEY đã đặt trên Vercel) để đồng bộ giữa các máy. Chỉ cần nhập một lần trên mỗi máy.</p>
-    <input id="keyIn" type="password" autocomplete="off" style="border:2px solid var(--line);background:var(--bg);border-radius:12px;padding:12px;font-size:16px;text-align:center">
-    <div style="display:flex;gap:8px;justify-content:center"><button class="btn" id="keyCancel">Để sau</button><button class="btn pri" id="keySave">Lưu</button></div>
+<div class="auth" id="auth" hidden>
+  <div class="auth-card">
+    <div class="auth-logo" aria-hidden="true">⭐</div>
+    <h1 class="auth-title">Tự làm <span>mỗi ngày</span></h1>
+    <p class="note" style="text-align:center">Mỗi tài khoản dành cho 1 bé. Bố mẹ và con đăng nhập cùng tài khoản trên các máy để dùng chung bảng việc.</p>
+    <div class="seg" role="tablist">
+      <button type="button" role="tab" id="modeLogin" aria-selected="true">Đăng nhập</button>
+      <button type="button" role="tab" id="modeReg" aria-selected="false">Tạo tài khoản</button>
+    </div>
+    <form id="authForm" class="auth-form" novalidate>
+      <div class="field" id="childField" hidden><label for="a-child">Tên của bé</label><input id="a-child" autocomplete="off" placeholder="VD: Bin"></div>
+      <div class="field"><label for="a-user">Tên đăng nhập</label><input id="a-user" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="VD: nhabin"></div>
+      <div class="field"><label for="a-pass">Mật khẩu</label><input id="a-pass" type="password" autocomplete="current-password"></div>
+      <div class="field" id="pass2Field" hidden><label for="a-pass2">Nhập lại mật khẩu</label><input id="a-pass2" type="password" autocomplete="new-password"></div>
+      <p class="note bad" id="authErr" role="alert" hidden></p>
+      <button class="btn pri" id="authBtn" type="submit" style="padding:12px;font-size:16px">Đăng nhập</button>
+      <button class="btn" id="authLocal" type="button" hidden>Dùng tạm trên máy này</button>
+    </form>
   </div>
 </div>
 
@@ -304,17 +328,18 @@ let dirtyCfg=!!dirty.cfg; const dirtyDays=new Set(dirty.days||[]);
 function saveDirty(){ lsSet("tlmn_dirty",{cfg:dirtyCfg,days:[...dirtyDays]}); }
 
 /* ---------- server sync (Vercel API) ---------- */
-function appKey(){ try{return localStorage.getItem("tlmn_key")||""}catch(e){return ""} }
+let token=lsGet("tlmn_token")||"";
 async function api(path,opt){
   opt=opt||{};
-  const r=await fetch("/api/"+path,{method:opt.method||"GET",body:opt.body,cache:"no-store",headers:{"content-type":"application/json","x-app-key":appKey()}});
-  if(r.status===401){ status="key"; setSync(); showKey(); const e=new Error("key"); e.status=401; throw e; }
+  const r=await fetch("/api/"+path,{method:opt.method||"GET",body:opt.body,cache:"no-store",headers:{"content-type":"application/json","authorization":"Bearer "+token}});
+  if(r.status===401){ sessionExpired(); const e=new Error("auth"); e.status=401; throw e; }
   if(r.status===503){ status="nodb"; const e=new Error("nodb"); e.status=503; throw e; }
   if(!r.ok){ const e=new Error("http "+r.status); e.status=r.status; throw e; }
   return r.json();
 }
 let pushing=false, pushAgain=false, pushTimer=null;
 async function push(){
+  if(!token) return;
   if(pushing){ pushAgain=true; return; }
   pushing=true;
   try{
@@ -324,7 +349,7 @@ async function push(){
       try{ await api("day",{method:"PUT",body:JSON.stringify({date:k,done:(days[k]||[]).slice()})}); }catch(e){ dirtyDays.add(k); saveDirty(); throw e; }
     }
     status="ok"; lastSync=new Date();
-  }catch(e){ if(status!=="key"&&status!=="nodb") status="offline"; }
+  }catch(e){ if(status!=="auth"&&status!=="nodb") status="offline"; }
   finally{ pushing=false; setSync(); }
   if(pushAgain){ pushAgain=false; push(); }
 }
@@ -341,6 +366,7 @@ function saveDay(k){
 function editing(){ const a=document.activeElement; return !$("sheet").hidden && a && a.tagName==="INPUT"; }
 let pulling=false;
 async function pull(){
+  if(!token){ status=localOnly?"nodb":"auth"; setSync(); return; }
   if(pulling||!navigator.onLine&&status!=="local") return;
   pulling=true;
   try{
@@ -355,7 +381,7 @@ async function pull(){
     status="ok"; lastSync=new Date();
     if(dirtyCfg||dirtyDays.size) push();
     if(!editing()){ if($("sheet").hidden) render(); else { showTab(curTab); } }
-  }catch(e){ if(status!=="key"&&status!=="nodb") status="offline"; }
+  }catch(e){ if(status!=="auth"&&status!=="nodb") status="offline"; }
   finally{ pulling=false; setSync(); }
 }
 
@@ -364,7 +390,7 @@ function doneFor(k){ const ids=new Set(cfg.tasks.map(t=>t.id)); return (days[k]|
 function setSync(){
   const el=$("sync"), n=(dirtyCfg?1:0)+dirtyDays.size;
   if(status==="ok") el.textContent="Đã đồng bộ lúc "+pad2(lastSync.getHours())+":"+pad2(lastSync.getMinutes())+" ✓"+(n?" · đang gửi…":"");
-  else if(status==="key") el.textContent="Cần nhập mã gia đình để đồng bộ.";
+  else if(status==="auth") el.textContent="Chưa đăng nhập, đang lưu trên máy này.";
   else if(status==="nodb") el.textContent="Máy chủ chưa có cơ sở dữ liệu, đang lưu trên máy này.";
   else if(status==="offline") el.textContent="Chưa kết nối mạng, đang lưu trên máy này"+(n?" (sẽ gửi khi có mạng)":"")+".";
   else el.textContent="Đang kết nối…";
@@ -505,8 +531,17 @@ function infoHTML(){
   '<h3 style="font-size:20px;margin-top:6px">Mục tiêu tháng này</h3><p class="note">Ô trống sẽ không hiện cho con.</p>'+
   cfg.goals.map((g,i)=>'<div class="row" style="grid-template-columns:minmax(0,1fr) auto" data-i="'+i+'"><input id="goal-'+g.id+'" data-act="goal" value="'+esc(g.text)+'" placeholder="Mục tiêu '+(i+1)+'"><div class="acts"><button class="ib del" data-act="gdel" aria-label="Xoá mục tiêu">✕</button></div></div>').join("")+
   '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" data-act="gadd">+ Thêm mục tiêu</button><button class="btn" data-act="gclear">Bỏ đánh dấu (tháng mới)</button></div>'+
-  '<h3 style="font-size:20px;margin-top:6px">Bảo mật</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="pin">Đổi mã PIN</button><button class="btn" data-act="key">Nhập mã gia đình</button></div>'+
-  (cfg.pin==="1234"?'<p class="note bad">Đang dùng mã mặc định 1234. Nên đổi để con không tự mở.</p>':"");
+  '<h3 style="font-size:20px;margin-top:6px">Bảo mật</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="pin">Đổi mã PIN</button></div>'+
+  (cfg.pin==="1234"?'<p class="note bad">Đang dùng mã mặc định 1234. Nên đổi để con không tự mở.</p>':"")+
+  '<h3 style="font-size:20px;margin-top:6px">Tài khoản</h3>'+
+  (token?'<div class="acct"><p class="note" style="color:var(--ink)">Đang đăng nhập: <b>'+esc(lsGet("tlmn_user")||"")+'</b></p>'+
+    '<div class="field"><label for="pw-old">Mật khẩu hiện tại</label><input id="pw-old" type="password" autocomplete="current-password"></div>'+
+    '<div class="field"><label for="pw-new">Mật khẩu mới</label><input id="pw-new" type="password" autocomplete="new-password"></div>'+
+    '<div class="field"><label for="pw-new2">Nhập lại mật khẩu mới</label><input id="pw-new2" type="password" autocomplete="new-password"></div>'+
+    '<p class="note bad" id="pwErr" hidden></p>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" data-act="pwchange">Đổi mật khẩu</button>'+
+    '<button class="btn warn" data-act="logout">'+(armed==="__logout"?"Bấm lần nữa để đăng xuất":"Đăng xuất")+'</button></div></div>'
+  :'<div><button class="btn pri" data-act="login">Đăng nhập / Tạo tài khoản</button></div>');
 }
 function histHTML(){
   const now=new Date(); if(!histMonth) histMonth=new Date(now.getFullYear(),now.getMonth(),1);
@@ -539,7 +574,7 @@ $("pane").addEventListener("click",e=>{
   const hb=e.target.closest("[data-hid]"); if(hb){ const k=histSel,id=hb.dataset.hid; const arr=(days[k]||[]).filter(x=>x!==id); if(!(days[k]||[]).includes(id)) arr.push(id); days[k]=arr; saveDay(k); showTab("hist"); return; }
   const b=e.target.closest("[data-act]"); if(!b||b.tagName==="INPUT") return;
   const act=b.dataset.act, row=b.closest("[data-i]"), i=row?+row.dataset.i:-1;
-  if(act!=="del"&&act!=="rdel"&&act!=="reset") armed=null;
+  if(act!=="del"&&act!=="rdel"&&act!=="reset"&&act!=="logout") armed=null;
   switch(act){
     case "pick": pickFor=pickFor===cfg.tasks[i].id?null:cfg.tasks[i].id; break;
     case "up": if(i>0){[cfg.tasks[i-1],cfg.tasks[i]]=[cfg.tasks[i],cfg.tasks[i-1]];saveCfg()} break;
@@ -555,7 +590,9 @@ $("pane").addEventListener("click",e=>{
     case "gdel": cfg.goals.splice(i,1); saveCfg(true); break;
     case "gclear": cfg.goals.forEach(g=>g.done=false); saveCfg(true); toast("Đã bỏ đánh dấu mục tiêu"); break;
     case "pin": openPin("change"); return;
-    case "key": $("keyIn").value=appKey(); showKey(); return;
+    case "login": $("sheet").hidden=true; document.body.style.overflow=""; setMode("login"); showAuth(); return;
+    case "pwchange": changePw(); return;
+    case "logout": if(armed==="__logout"){ armed=null; doLogout(); return; } armed="__logout"; break;
     case "mprev": histMonth=new Date(histMonth.getFullYear(),histMonth.getMonth()-1,1); histSel=null; break;
     case "mnext": histMonth=new Date(histMonth.getFullYear(),histMonth.getMonth()+1,1); histSel=null; break;
   }
@@ -576,18 +613,92 @@ $("pane").addEventListener("change",e=>{
   if(e.target.dataset.act==="text"&&!e.target.value.trim()){ const i=+e.target.closest("[data-i]").dataset.i; cfg.tasks[i].text="Việc "+(i+1); saveCfg(true); showTab("tasks"); }
 });
 
-/* ---------- key ---------- */
-function showKey(){ $("keybox").hidden=false; setTimeout(()=>$("keyIn").focus(),50); }
-$("keySave").onclick=()=>{ const v=$("keyIn").value.trim(); if(!v) return; try{localStorage.setItem("tlmn_key",v)}catch(e){} $("keybox").hidden=true; status="local"; setSync(); pull(); };
-$("keyCancel").onclick=()=>{ $("keybox").hidden=true; };
-$("keyIn").addEventListener("keydown",e=>{ if(e.key==="Enter") $("keySave").click(); });
+/* ---------- tài khoản ---------- */
+let authMode="login", localOnly=false;
+function setMode(m){
+  authMode=m;
+  $("modeLogin").setAttribute("aria-selected",m==="login"); $("modeReg").setAttribute("aria-selected",m==="register");
+  $("childField").hidden=m!=="register"; $("pass2Field").hidden=m!=="register";
+  $("a-pass").setAttribute("autocomplete",m==="register"?"new-password":"current-password");
+  $("authBtn").textContent=m==="register"?"Tạo tài khoản":"Đăng nhập";
+  $("authErr").hidden=true;
+}
+$("modeLogin").onclick=()=>setMode("login");
+$("modeReg").onclick=()=>setMode("register");
+function showAuth(msg){
+  $("auth").hidden=false;
+  if(msg){ $("authErr").textContent=msg; $("authErr").hidden=false; }
+  if(!lsGet("tlmn_user")&&!msg) setMode("register");
+}
+function authErr(m){ $("authErr").textContent=m; $("authErr").hidden=false; }
+async function authCall(payload,useToken){
+  const r=await fetch("/api/auth",{method:"POST",cache:"no-store",headers:{"content-type":"application/json",...(useToken?{authorization:"Bearer "+token}:{})},body:JSON.stringify(payload)});
+  let j={}; try{ j=await r.json(); }catch(e){}
+  return {status:r.status,data:j};
+}
+function clearLocal(){
+  cfg=normCfg(null); days={}; dirtyCfg=false; dirtyDays.clear();
+  lsSet("tlmn_cfg",cfg); lsSet("tlmn_days",days); saveDirty();
+}
+function adopt(username,tk,isNew,child){
+  const prev=lsGet("tlmn_user");
+  if(prev&&prev!==username) clearLocal();
+  token=tk; lsSet("tlmn_token",tk); lsSet("tlmn_user",username);
+  if(isNew&&child){ cfg.name=child; lsSet("tlmn_cfg",cfg); dirtyCfg=true; saveDirty(); }
+  localOnly=false; status="local";
+  $("auth").hidden=true; $("a-pass").value=""; $("a-pass2").value="";
+  render(); pull();
+}
+$("authForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const u=$("a-user").value.trim().toLowerCase(), pw=$("a-pass").value;
+  if(!u||!pw) return authErr("Nhập tên đăng nhập và mật khẩu");
+  if(authMode==="register"){
+    if(!/^[a-z0-9._-]{3,30}$/.test(u)) return authErr("Tên đăng nhập 3–30 ký tự, chỉ gồm chữ không dấu, số và . _ -");
+    if(pw.length<6) return authErr("Mật khẩu cần ít nhất 6 ký tự");
+    if(pw!==$("a-pass2").value) return authErr("Hai mật khẩu chưa giống nhau");
+  }
+  const btn=$("authBtn"); btn.disabled=true; const old=btn.textContent; btn.textContent="Đang xử lý…";
+  try{
+    const r=await authCall({action:authMode,username:u,password:pw});
+    if(r.status===200) adopt(r.data.username,r.data.token,authMode==="register",$("a-child").value.trim());
+    else if(r.status===503){ authErr("Máy chủ chưa có cơ sở dữ liệu. Có thể dùng tạm trên máy này."); $("authLocal").hidden=false; }
+    else authErr(r.data.error||"Không thực hiện được, thử lại sau");
+  }catch(err){ authErr("Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại."); }
+  finally{ btn.disabled=false; btn.textContent=old; }
+});
+$("authLocal").onclick=()=>{ localOnly=true; status="nodb"; $("auth").hidden=true; render(); };
+function sessionExpired(){
+  token=""; lsSet("tlmn_token",""); status="auth"; setSync();
+  if($("auth").hidden) showAuth("Phiên đăng nhập đã hết, hãy đăng nhập lại.");
+}
+async function doLogout(){
+  const tk=token;
+  if(tk){ try{ await authCall({action:"logout"},true); }catch(e){} }
+  token=""; lsSet("tlmn_token",""); lsSet("tlmn_user",""); clearLocal();
+  $("sheet").hidden=true; document.body.style.overflow="";
+  status="auth"; render(); ["a-child","a-user","a-pass","a-pass2"].forEach(id=>$(id).value=""); showAuth(); setMode("login");
+}
+async function changePw(){
+  const o=$("pw-old").value, n=$("pw-new").value, n2=$("pw-new2").value, er=$("pwErr");
+  const fail=m=>{ er.textContent=m; er.hidden=false; };
+  if(!o||!n) return fail("Nhập đủ mật khẩu hiện tại và mật khẩu mới");
+  if(n.length<6) return fail("Mật khẩu mới cần ít nhất 6 ký tự");
+  if(n!==n2) return fail("Hai mật khẩu mới chưa giống nhau");
+  try{
+    const r=await authCall({action:"password",password:o,newPassword:n},true);
+    if(r.status===200){ token=r.data.token; lsSet("tlmn_token",token); toast("Đã đổi mật khẩu. Các máy khác cần đăng nhập lại."); showTab("info"); }
+    else if(r.status===401) sessionExpired();
+    else fail(r.data.error||"Không đổi được mật khẩu");
+  }catch(e){ fail("Không kết nối được máy chủ"); }
+}
 
 /* ---------- sync ---------- */
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ render(); pull(); } });
 window.addEventListener("online",()=>pull());
 setInterval(()=>{ if(!document.hidden){ if($("dateLbl").dataset.k!==todayKey()){ $("dateLbl").dataset.k=todayKey(); if($("sheet").hidden) render(); } pull(); } },20000);
 $("dateLbl").dataset.k=todayKey();
-render(); pull();
+render(); if(token) pull(); else { status="auth"; setSync(); showAuth(); }
 if("serviceWorker" in navigator&&location.protocol!=="file:"){ try{ navigator.serviceWorker.register("/sw.js").catch(()=>{}); }catch(e){} }
 })();
 </script>
