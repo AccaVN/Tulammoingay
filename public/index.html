@@ -52,6 +52,11 @@ h1,h2,h3{font-family:var(--display);margin:0;line-height:1.1;text-wrap:balance}
 .top{background:var(--sky);padding-top:env(safe-area-inset-top,0px);overflow:hidden}
 .top .wrap{padding-block:12px 18px;display:grid;gap:0}
 .hero-bar{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.datenav{display:flex;align-items:center;gap:4px;min-width:0}
+.navb{flex:none;width:34px;height:34px;border-radius:50%;border:2px solid var(--line);background:var(--card);font-weight:800;font-size:18px;line-height:1;display:grid;place-items:center;padding:0;color:var(--ink)}
+.navb[disabled]{opacity:.35;cursor:default}
+.date-chip.past{background:var(--done);border-color:var(--doneline);color:var(--ink)}
+.pastbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--done);border:2px solid var(--doneline);border-radius:14px;padding:10px 12px;font-weight:600;font-size:14px;margin-bottom:14px}
 .date-chip{font-size:13px;font-weight:600;color:var(--muted);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:5px 12px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hero{position:relative;display:grid;grid-template-columns:minmax(110px,42%) minmax(0,1fr);align-items:end;gap:6px;margin-top:4px}
 .kid{display:block;width:100%;max-width:230px;height:auto;justify-self:center;position:relative;z-index:1;margin-bottom:-6px}
@@ -115,9 +120,11 @@ main .wrap{padding-block:18px calc(40px + env(safe-area-inset-bottom,0px));displ
 .goal.on span{color:var(--muted);text-decoration:line-through}
 
 .week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
-.day{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:8px 2px;text-align:center;font-size:12px;color:var(--muted)}
+.day{font:inherit;color:inherit;width:100%;cursor:pointer;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:8px 2px;text-align:center;font-size:12px;color:var(--muted)}
 .day b{display:block;font-family:var(--display);font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums}
 .day.today{border-color:var(--blue)}
+.day.sel{background:var(--done);border-color:var(--doneline)}
+.day[disabled]{cursor:default;opacity:.6}
 .day .dot{display:block;height:6px;border-radius:3px;margin:4px 6px 0;background:var(--leaf);overflow:hidden}
 .day .dot i{display:block;height:100%;background:var(--green)}
 .sync{font-size:12px;color:var(--muted);text-align:center}
@@ -206,7 +213,7 @@ select.sel{width:100%;border:2px solid var(--line);background:var(--bg);border-r
 <header class="top">
   <div class="wrap">
     <div class="hero-bar">
-      <span class="date-chip" id="dateLbl">Hôm nay</span>
+      <div class="datenav"><button class="navb" id="dPrev" aria-label="Ngày trước">‹</button><span class="date-chip" id="dateLbl">Hôm nay</span><button class="navb" id="dNext" aria-label="Ngày sau">›</button></div>
       <button class="lockbtn" id="openParent" aria-label="Mở chế độ phụ huynh">🔒 Bố mẹ</button>
     </div>
     <div class="hero">
@@ -236,7 +243,8 @@ select.sel{width:100%;border:2px solid var(--line);background:var(--bg);border-r
 <main>
   <div class="wrap">
     <section>
-      <div class="sec-h"><h2>Chọn việc con đã làm</h2><p>Chạm để dán sao ⭐</p></div>
+      <div class="pastbar" id="pastBar" hidden><span id="pastTxt"></span><button class="btn pri" id="backToday">Về hôm nay</button></div>
+      <div class="sec-h"><h2 id="gridH">Chọn việc con đã làm</h2><p>Chạm để dán sao ⭐</p></div>
       <div class="grid" id="grid"></div>
     </section>
     <section id="goalSec">
@@ -244,7 +252,7 @@ select.sel{width:100%;border:2px solid var(--line);background:var(--bg);border-r
       <div class="goals" id="goals"></div>
     </section>
     <section>
-      <div class="sec-h"><h2>Tuần này</h2><p id="weekSum"></p></div>
+      <div class="sec-h"><h2 id="weekH">Tuần này</h2><p id="weekSum"></p></div>
       <div class="week" id="week"></div>
     </section>
     <p class="sync" id="sync">Đang tải…</p>
@@ -445,9 +453,21 @@ let toastT;
 function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
 
 /* ---------- child board ---------- */
+const MAX_BACK=30; let selKey=null;
+function parseKey(k){ const p=k.split("-"); return new Date(+p[0],+p[1]-1,+p[2]); }
+function goDay(k,scroll){ selKey=(k&&k<todayKey())?k:null; render(); if(scroll) window.scrollTo({top:$("grid").getBoundingClientRect().top+scrollY-120,behavior:"smooth"}); }
+function shiftDay(n){ const d=parseKey(selKey||todayKey()); d.setDate(d.getDate()+n); goDay(keyOf(d)); }
 function render(){
-  const now=new Date(), k=keyOf(now);
-  $("dateLbl").textContent=WDL[now.getDay()]+", "+now.getDate()+"/"+(now.getMonth()+1)+"/"+now.getFullYear();
+  const now=new Date(), tk=keyOf(now);
+  if(selKey&&selKey>=tk) selKey=null;
+  const k=selKey||tk, sd=parseKey(k), past=!!selKey;
+  $("dateLbl").textContent=(past?"":"Hôm nay · ")+WDL[sd.getDay()]+", "+sd.getDate()+"/"+(sd.getMonth()+1)+(past?"/"+sd.getFullYear():"");
+  $("dateLbl").classList.toggle("past",past);
+  $("dNext").disabled=!past;
+  const minD=new Date(now); minD.setDate(now.getDate()-MAX_BACK); $("dPrev").disabled=k<=keyOf(minD);
+  $("pastBar").hidden=!past;
+  if(past){ const y=new Date(now); y.setDate(now.getDate()-1); $("pastTxt").textContent="Đang đánh giá "+(k===keyOf(y)?"hôm qua":"ngày cũ")+": "+WDL[sd.getDay()]+" "+sd.getDate()+"/"+(sd.getMonth()+1); }
+  $("gridH").textContent=past?"Việc con đã làm ngày "+sd.getDate()+"/"+(sd.getMonth()+1):"Chọn việc con đã làm";
   $("gradeLbl").textContent=cfg.grade?" - Lớp "+cfg.grade:"";
   $("whoLbl").innerHTML=(cfg.name?"Chào <b>"+esc(cfg.name)+"</b>!":"Chào con!")+(cfg.school?" · "+esc(cfg.school):"");
   $("bubble").innerHTML="Cố gắng mỗi ngày để trở thành "+(cfg.grade==="Lá"?"bé ngoan lớp Lá":cfg.grade?"học sinh lớp "+esc(cfg.grade):"bạn nhỏ")+" siêu giỏi nhé! <span class=\"heart\">♥</span>";
@@ -457,7 +477,7 @@ function render(){
   const got=rw.filter(r=>r.need<=n);
   if(!rw.length) $("nextLbl").textContent="";
   else if(next) $("nextLbl").innerHTML="Còn <b>"+(next.need-n)+" việc</b> nữa để nhận quà!";
-  else $("nextLbl").innerHTML="<b>Con đã đạt mọi mốc hôm nay! 🎉</b>";
+  else $("nextLbl").innerHTML="<b>Con đã đạt mọi mốc "+(past?"ngày này":"hôm nay")+"! 🎉</b>";
   $("barFill").style.width=(total?Math.min(100,n/total*100):0)+"%";
   const bar=$("bar"); bar.querySelectorAll(".mark").forEach(e=>e.remove());
   rw.forEach(r=>{ if(r.need>total) return; const m=document.createElement("span"); m.className="mark"+(n>=r.need?" on":""); m.style.left=Math.min(97,Math.max(3,r.need/total*100))+"%"; m.innerHTML=(n>=r.need?'<img src="/art/gift.webp" alt="">':"⭐")+"<b>"+r.need+"</b>"; bar.appendChild(m); });
@@ -469,16 +489,22 @@ function render(){
   $("goalSec").hidden=!gl.length;
   $("goals").innerHTML=gl.map(x=>'<button class="goal'+(x.done?" on":"")+'" data-g="'+x.id+'" aria-pressed="'+!!x.done+'"><span class="box">'+(x.done?"✓":"")+'</span><span>'+esc(x.text)+'</span></button>').join("");
   // week
-  const mon=new Date(now); mon.setDate(now.getDate()-((now.getDay()+6)%7));
+  const mon=new Date(sd); mon.setDate(sd.getDate()-((sd.getDay()+6)%7));
   let sum=0,wk="";
   for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);const dk=keyOf(d);const c=doneFor(dk).length;if(d<=now)sum+=c;
-    wk+='<div class="day'+(dk===k?" today":"")+'">'+WD[d.getDay()]+'<b>'+(d>now&&dk!==k?"–":c)+'</b><span class="dot"><i style="width:'+(total?Math.round(c/total*100):0)+'%"></i></span></div>';}
+    const fut=dk>tk, old=dk<keyOf(minD);
+    wk+='<button class="day'+(dk===tk?" today":"")+(dk===k&&past?" sel":"")+'" data-wk="'+dk+'"'+(fut||old?" disabled":"")+' aria-label="'+WDL[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1)+'">'+WD[d.getDay()]+'<b>'+(fut?"–":c)+'</b><span class="dot"><i style="width:'+(total?Math.round(c/total*100):0)+'%"></i></span></button>';}
   $("week").innerHTML=wk; $("weekSum").textContent="Tổng "+sum+" việc";
+  $("weekH").textContent=(mon<=now&&keyOf(new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+6))>=tk)?"Tuần này":"Tuần "+mon.getDate()+"/"+(mon.getMonth()+1);
   setSync();
 }
+$("dPrev").onclick=()=>shiftDay(-1);
+$("dNext").onclick=()=>shiftDay(1);
+$("backToday").onclick=()=>goDay(null);
+$("week").addEventListener("click",e=>{ const b=e.target.closest("[data-wk]"); if(b&&!b.disabled) goDay(b.dataset.wk,true); });
 $("grid").addEventListener("click",e=>{
   const b=e.target.closest(".task"); if(!b) return;
-  const k=todayKey(), id=b.dataset.id, before=doneFor(k).length;
+  const k=selKey||todayKey(), id=b.dataset.id, before=doneFor(k).length;
   const arr=(days[k]||[]).filter(x=>x!==id); if(!(days[k]||[]).includes(id)) arr.push(id);
   days[k]=arr; saveDay(k); render();
   const after=doneFor(k).length;
